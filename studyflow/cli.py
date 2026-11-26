@@ -2,7 +2,7 @@
 import shlex
 from dataclasses import dataclass
 from typing import Callable, Protocol
-from .core import Task, TaskService
+from .core import PlannedTask, ProgressReport, Task, TaskService
 
 
 class IO(Protocol):
@@ -38,6 +38,20 @@ class Renderer(Protocol):
 
 class TextRenderer:
     def render(self, value: object) -> str:
+        if isinstance(value, ProgressReport):
+            return self.render({
+                "Усього": value.total, "Виконано": value.completed,
+                "Прострочено": value.overdue, "Терміново": value.urgent,
+                "Заплановано": value.upcoming,
+                "Прогрес (%)": value.completion_percent,
+            })
+        if isinstance(value, list) and value and isinstance(value[0], PlannedTask):
+            rows = ["ID | Пріоритет | Дедлайн | Предмет | Завдання"]
+            for entry in value:
+                task = entry.task
+                rows.append(f"{task.id} | {entry.status.value} | {task.deadline} | "
+                            f"{task.subject} | {task.title}")
+            return "\n".join(rows)
         if isinstance(value, list):
             if not value:
                 return "Завдань немає."
@@ -82,6 +96,9 @@ class QueryStrategy:
             Command("today", "today", self.today),
             Command("week", "week", self.week),
             Command("stats", "stats", self.stats),
+            Command("plan", "plan", self.plan),
+            Command("overdue", "overdue", self.overdue),
+            Command("progress", "progress", self.progress),
         ]
 
     @staticmethod
@@ -103,6 +120,21 @@ class QueryStrategy:
     def stats(cli: "CLI", values: tuple[str, ...]) -> None:
         require(values, 0, "stats")
         cli.display(cli.service.stats())
+
+    @staticmethod
+    def plan(cli: "CLI", values: tuple[str, ...]) -> None:
+        require(values, 0, "plan")
+        cli.display(cli.service.plan())
+
+    @staticmethod
+    def overdue(cli: "CLI", values: tuple[str, ...]) -> None:
+        require(values, 0, "overdue")
+        cli.display(cli.service.overdue())
+
+    @staticmethod
+    def progress(cli: "CLI", values: tuple[str, ...]) -> None:
+        require(values, 0, "progress")
+        cli.display(cli.service.progress())
 
 
 class ActionStrategy:
