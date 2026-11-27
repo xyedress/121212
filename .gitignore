@@ -13,3 +13,8 @@ __pycache__/
 *.sqlite3-journal
 *.snapshot.json
 backups/
+
+build/
+dist/
+release/
+*.spec
