@@ -1,5 +1,6 @@
 """Facade, Strategy та Command для командного інтерфейсу."""
 import shlex
+import sys
 from dataclasses import dataclass
 from typing import Callable, Protocol
 from .core import PlannedTask, ProgressReport, Task, TaskService
@@ -11,6 +12,15 @@ class IO(Protocol):
 
 
 class ConsoleIO:
+    def __init__(self) -> None:
+        # Frozen Windows executables may ignore Python's UTF-8 environment
+        # variables. Explicitly configure text streams, including CI pipes.
+        if sys.platform == "win32":
+            for stream in (sys.stdin, sys.stdout, sys.stderr):
+                reconfigure = getattr(stream, "reconfigure", None)
+                if reconfigure is not None:
+                    reconfigure(encoding="utf-8", errors="replace")
+
     def read(self, prompt: str) -> str:
         return input(prompt)
 
