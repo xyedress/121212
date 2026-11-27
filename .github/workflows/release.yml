@@ -4,6 +4,11 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/release.yml'
+      - 'studyflow/**'
+      - 'main.py'
+      - 'gui_launcher.py'
+      - 'build.ps1'
+      - 'requirements-build.txt'
   workflow_dispatch:
 
 permissions:
