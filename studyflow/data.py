@@ -1,11 +1,15 @@
 """SQLite-реалізація репозиторію."""
 import sqlite3
+from pathlib import Path
 from .core import Task
 
 
 class SQLiteRepository:
     def __init__(self, path: str):
-        self.connection = sqlite3.connect(path)
+        self.path = Path(path).resolve() if path != ':memory:' else None
+        if self.path is not None:
+            self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.connection = sqlite3.connect(path if self.path is None else self.path)
         self.connection.execute(
             """CREATE TABLE IF NOT EXISTS tasks (
                id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -13,6 +17,8 @@ class SQLiteRepository:
                deadline TEXT NOT NULL, completed INTEGER NOT NULL DEFAULT 0
                )"""
         )
+        self.connection.execute(
+            'CREATE INDEX IF NOT EXISTS idx_tasks_deadline ON tasks(deadline)')
         self.connection.commit()
 
     def add(self, subject: str, title: str, deadline: str) -> int:
@@ -44,6 +50,16 @@ class SQLiteRepository:
             return self.connection.execute(
                 "DELETE FROM tasks WHERE id=?", (task_id,)
             ).rowcount > 0
+
+    def replace_all(self, tasks: list[Task]) -> None:
+        """Відновлення знімка в одній транзакції; помилка скасовує зміни."""
+        with self.connection:
+            self.connection.execute("DELETE FROM tasks")
+            self.connection.executemany(
+                "INSERT INTO tasks(id,subject,title,deadline,completed) "
+                "VALUES (?,?,?,?,?)",
+                [(t.id, t.subject, t.title, t.deadline, int(t.completed))
+                 for t in tasks])
 
     def close(self) -> None:
         self.connection.close()
