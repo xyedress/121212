@@ -214,7 +214,9 @@ class StudyFlowWindow(ttk.Frame):
                          "Дані відновлено")
 
 
-def run_gui(controller: PlannerController, mode="all"):
+def run_gui(controller: PlannerController, mode="all", *, smoke_test=False):
     root = tk.Tk()
     StudyFlowWindow(root, controller, mode)
+    if smoke_test:
+        root.after(500, root.destroy)
     root.mainloop()
