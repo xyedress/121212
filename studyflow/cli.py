@@ -173,6 +173,35 @@ class ActionStrategy:
         cli.service.delete(int(values[0]))
         cli.display("Завдання видалено.")
 
+ 
+class SnapshotStore(Protocol):
+    def save(self, path: str) -> int: ...
+    def load(self, path: str) -> int: ...
+
+
+class PersistenceStrategy:
+    """Команди збереження й відновлення без залежності від SQLite."""
+    def __init__(self, store: SnapshotStore):
+        self.store = store
+
+    def commands(self) -> list[Command]:
+        return [
+            Command("save", 'save "шлях.json"', self.save),
+            Command("load", 'load "шлях.json" --replace', self.load),
+        ]
+
+    def save(self, cli: "CLI", values: tuple[str, ...]) -> None:
+        require(values, 1, 'save "шлях.json"')
+        count = self.store.save(values[0])
+        cli.display(f"Збережено завдань: {count}")
+
+    def load(self, cli: "CLI", values: tuple[str, ...]) -> None:
+        require(values, 2, 'load "шлях.json" --replace')
+        if values[1] != "--replace":
+            raise ValueError("Для заміни поточних даних потрібен --replace")
+        count = self.store.load(values[0])
+        cli.display(f"Відновлено завдань: {count}")
+
 
 class SystemStrategy:
     def commands(self) -> list[Command]:
@@ -230,7 +259,7 @@ class CLI:
             if command is None:
                 raise ValueError("Невідома команда. Введіть help.")
             command.execute(self, args.values)
-        except ValueError as exc:
+        except (ValueError, OSError) as exc:
             self.display(f"Помилка: {exc}")
 
     def run(self) -> None:
