@@ -10,12 +10,15 @@ from studyflow.cli import (
 )
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description="StudyFlow")
     parser.add_argument("--mode", choices=["all", "active", "completed"], default="all")
     parser.add_argument("--db", help="Шлях до бази SQLite")
     parser.add_argument("--gui", action="store_true", help="Графічний інтерфейс")
-    args = parser.parse_args()
+    parser.add_argument('--smoke-test', action='store_true', help=argparse.SUPPRESS)
+    args = parser.parse_args(argv)
+    if args.smoke_test and not args.gui:
+        parser.error('--smoke-test requires --gui')
     repository = SQLiteRepository(args.db or str(default_database_path()))
     try:
         service = TaskService(repository)
@@ -23,7 +26,8 @@ def main() -> None:
         if args.gui:
             from studyflow.gui import run_gui
             from studyflow.gui_controller import PlannerController
-            run_gui(PlannerController(service, snapshots), args.mode)
+            run_gui(PlannerController(service, snapshots), args.mode,
+                    smoke_test=args.smoke_test)
             return
         cli = CLI(service, ConsoleIO(), TextRenderer(), args.mode)
         for strategy in (QueryStrategy(), ActionStrategy(), SystemStrategy(),
