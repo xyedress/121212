@@ -114,7 +114,7 @@ class StudyFlowWindow(ttk.Frame):
         self.tree.tag_configure("Прострочено", foreground="#b42318")
         self.tree.tag_configure("Терміново", foreground="#9a6700")
         self.tree.tag_configure("Виконано", foreground="#18794e")
-        self.tree.bind("<Double-1>", lambda event: self.edit())
+        self.tree.bind("<Double-1>", self.edit_clicked_row)
 
         actions = ttk.Frame(self)
         actions.pack(fill="x", pady=(12, 6))
@@ -156,6 +156,14 @@ class StudyFlowWindow(ttk.Frame):
                          f"Прогрес: {report.completion_percent:g}%")
         self.progress["value"] = report.completion_percent
         self.status.set(f"Показано завдань: {len(dashboard.rows)}")
+
+    def edit_clicked_row(self, event):
+        """Подвійне натискання редагує тільки фактично обраний рядок."""
+        if self.tree.identify_region(event.x, event.y) == "cell":
+            item = self.tree.identify_row(event.y)
+            if item in self.rows:
+                self.tree.selection_set(item)
+                self.edit()
 
     def selected(self):
         selection = self.tree.selection()

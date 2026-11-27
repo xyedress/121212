@@ -119,15 +119,23 @@ class TaskService:
             result.append(task)
         return sorted(result, key=lambda t: (t.deadline, t.id))
 
+    @staticmethod
+    def validate_id(task_id: int) -> None:
+        if type(task_id) is not int or not 0 < task_id < 2**63:
+            raise ValueError("ID має бути додатним цілим числом у межах SQLite")
+
     def done(self, task_id: int) -> None:
+        self.validate_id(task_id)
         if not self.repository.complete(task_id):
             raise ValueError("Завдання не знайдено")
 
     def edit(self, task_id: int, deadline: str) -> None:
+        self.validate_id(task_id)
         if not self.repository.edit(task_id, self.validate_deadline(deadline)):
             raise ValueError("Завдання не знайдено")
 
     def delete(self, task_id: int) -> None:
+        self.validate_id(task_id)
         if not self.repository.delete(task_id):
             raise ValueError("Завдання не знайдено")
 
