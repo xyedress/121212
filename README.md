@@ -1,8 +1,24 @@
-# StudyFlow — практичні заняття № 13–16
+# StudyFlow — практичні заняття № 13–17
 
 **Виконав: Трасковський Богдан.**
 
 Консольний і графічний планувальник навчальних завдань (тема 3). Python 3.10+, SQLite, без сторонніх залежностей.
+
+## Готова версія для Windows (практична № 17)
+
+Розгортання: переносний пакет (portable), без інсталятора. Після успішної збірки архів StudyFlow-Windows-x64.zip доступний у [Releases](https://github.com/xyedress/121212/releases). Розпакуйте архів і відкрийте StudyFlow.exe (GUI) або StudyFlow-CLI.exe (CLI). Для цих файлів окремий Python не потрібен. Підтримувана цільова платформа: Windows 10/11 x64. EXE не підписані; Windows може показати попередження.
+
+### Збірка з вихідного коду
+
+На Windows x64 встановіть Python 3.11 x64 із pip та Tcl/Tk. Відкрийте PowerShell у корені репозиторію. Виконайте:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\build.ps1
+```
+
+Сценарій встановлює PyInstaller 6.11.1, запускає модульні тести, збирає два EXE в dist, виконує перевірки запуску з тимчасовою SQLite-базою й створює release/StudyFlow-Windows-x64.zip та SHA256SUMS.txt. Потрібне інтернет-з'єднання для завантаження залежностей збірки. Встановлення PyInstaller краще проводити в окремому віртуальному середовищі. Для запуску вихідного коду PyInstaller не потрібен.
+
+Автоматична збірка налаштована у GitHub Actions: [Windows Release](https://github.com/xyedress/121212/actions/workflows/release.yml). У разі потреби оберіть Run workflow. Реліз публікується тільки після успішного завершення збірки та перевірок. Перевірити контрольну суму ZIP можна командою Get-FileHash -Algorithm SHA256.
 
 ## Запуск
 
